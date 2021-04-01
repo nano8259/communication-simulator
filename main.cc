@@ -15,5 +15,6 @@ int main(int argc, char** argv){
   // cout << Grobal::host_num << endl;
   Simulator simulator;
   simulator.CalculateCentralizedResult();
+  simulator.Run();
   return 0;
 }

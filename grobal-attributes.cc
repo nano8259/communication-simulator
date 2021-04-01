@@ -17,6 +17,8 @@ int GrobalAttributes::host_num;
 int GrobalAttributes::interval;
 int GrobalAttributes::shelf_life;
 int GrobalAttributes::time_span;
+int GrobalAttributes::bandwidth;
+bool GrobalAttributes::debug;
 
 GrobalAttributes::GrobalAttributes(){
 
@@ -35,4 +37,6 @@ void GrobalAttributes::LoadSettings(string file){
   interval = stoi(ini.GetValue(section, "interval"));
   shelf_life = stoi(ini.GetValue(section, "shelf-life"));
   time_span = stoi(ini.GetValue(section, "time-span"));
+  bandwidth = stoi(ini.GetValue(section, "bandwidth"));
+  debug = strcmp(ini.GetValue(section, "debug"), "true") == 0 ? true : false;
 }

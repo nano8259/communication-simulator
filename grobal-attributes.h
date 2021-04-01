@@ -18,6 +18,9 @@ public:
   static int interval;
   static int shelf_life;
   static int time_span;
+  static int bandwidth;
+
+  static bool debug;
 
   GrobalAttributes(/* args */);
   ~GrobalAttributes();

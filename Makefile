@@ -1,19 +1,18 @@
 CC=g++
 INCL=-I${HOME}/cpp-include
+# accept param from shell
+CXXFLAG=
 # find all ./*.cc
 src=$(wildcard ./*.cc)
 # replace all %.cc to %.o in $(src)  
 obj=$(patsubst %.cc, %.o, $(src))  
-target=simulator  
-
-# echo:
-# 	echo $(obj)
+target=simulator
 
 $(target): $(obj)  
-	$(CC) $(INCL) $(obj) -o $(target)
+	$(CC) $(INCL) $(obj) -o $(target) $(CXXFLAG)
 
 %.o: %.cc
-	$(CC) $(INCL) -c -o $@ $^
+	$(CC) $(INCL) -c -o $@ $^ $(CXXFLAG)
 
 all: clean $(target)
 

@@ -5,46 +5,87 @@
  *      Author: zczhang
  */
 
+#include <iostream>
+
 #include "host.h"
 #include "simulator.h"
+#include "grobal-attributes.h"
 
-Entry::Entry(int i, int u, int d, int t){
-  this->id = i;
-  this->up_bandwidth = u;
-  this->down_bandwidth = d;
-  this->timestamp = t;
+Entry::Entry(int id)
+:id(id), timestamp(0), up_bandwidth(Grobal::bandwidth), down_bandwidth(Grobal::bandwidth){
 }
 
-Host::Host(int id, int host_num, int interval, Simulator *simulator)
-:id(id), interval(interval), simulator(simulator){  
-  for(int i = 0; i < host_num; i++){
-    // unique_ptr<Entry> up(new Entry(i, BANDWIDTH, BANDWIDTH, 0));
-    // this->table.push_back(move(up));
-    this->table.push_back(make_unique<Entry>(i, BANDWIDTH, BANDWIDTH, 0));
+Entry::Entry(const Entry& e){
+  id = e.id;
+  timestamp = e.timestamp;
+  up_bandwidth = e.up_bandwidth;
+  down_bandwidth = e.down_bandwidth;
+}
+
+Host::Host(int id, Simulator *simulator)
+:id(id), simulator(simulator){ 
+  // init entry table of all hosts 
+  for(int i = 0; i < Grobal::host_num; i++){
+    this->table.push_back(make_unique<Entry>(i));
   }
 }
 
 void Host::Update(int now){
+  // update timestamp of itself
   table[id]->timestamp = now;
+
+  // find expired entry
   for(vector<unique_ptr<Entry>>::iterator iter = table.begin(); iter != table.end(); iter++){
-    if(now - iter->get()->timestamp >= interval){
+    if(now - iter->get()->timestamp >= Grobal::shelf_life){
       simulator->hosts[iter->get()->id]->Notify(table, id);
     }
   }
 }
 
-void Host::CompareTable(vector<unique_ptr<Entry>>& t){
+vector<unique_ptr<Entry>>* Host::CompareTable(vector<unique_ptr<Entry>>& t){
   int n = t.size();
+  vector<unique_ptr<Entry>>* feedback = new vector<unique_ptr<Entry>>;
+
   for(int i = 0; i < n; i++){
-    this->table[i]->timestamp = this->table[i]->timestamp > t[i]->timestamp ? this->table[i]->timestamp : t[i]->timestamp;
+    int entry_id = table[i]->id;
+    
+    if(table[entry_id]->timestamp > t[i]->timestamp){
+      // local entry is newer than peer's
+      feedback->push_back(make_unique<Entry>(*(table[entry_id].get())));
+    }else{
+      table[entry_id]->timestamp = t[i]->timestamp;
+    }
   }
+
+  return feedback;
 }
 
 void Host::Notify(vector<unique_ptr<Entry>>& t, int id){
-  CompareTable(t);
-  simulator->hosts[id]->Acknowledge(table);
+  simulator->IncreaseSum();
+
+  vector<unique_ptr<Entry>>* feedback =  CompareTable(t);
+  if(!feedback->empty()){
+    // if feedback is not empty, then reply the feedback
+    simulator->hosts[id]->Reply(table);
+  }
+
+  // for debug
+  if(Grobal::debug){
+      cout << "this is " << this->id << " being notified by " << id 
+        << ", and the feedback size is " << feedback->size() << endl;
+  }
 }
 
-void Host::Acknowledge(vector<unique_ptr<Entry>>& t){
-  CompareTable(t);
+void Host::Reply(vector<unique_ptr<Entry>>& t){
+  simulator->IncreaseSum();
+
+  vector<unique_ptr<Entry>>* feedback =  CompareTable(t);
+  if(!feedback->empty()){
+    cerr << "the feedback is not empty!" << endl;
+  }
+
+  if(Grobal::debug){
+      cout << "this is " << this->id << " being replied"
+        << ", and the feedback size is " << feedback->size() << endl;
+  }
 }
