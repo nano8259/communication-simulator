@@ -18,10 +18,14 @@ int GrobalAttributes::interval;
 int GrobalAttributes::shelf_life;
 int GrobalAttributes::time_span;
 int GrobalAttributes::bandwidth;
+GrobalAttributes::Pattern GrobalAttributes::pattern;
 bool GrobalAttributes::debug;
+int GrobalAttributes::seed;
+double GrobalAttributes::select_ratio;
+string GrobalAttributes::trace_file;
+double GrobalAttributes::time_scale;
 
 GrobalAttributes::GrobalAttributes(){
-
 }
 
 void GrobalAttributes::LoadSettings(string file){
@@ -39,4 +43,33 @@ void GrobalAttributes::LoadSettings(string file){
   time_span = stoi(ini.GetValue(section, "time-span"));
   bandwidth = stoi(ini.GetValue(section, "bandwidth"));
   debug = strcmp(ini.GetValue(section, "debug"), "true") == 0 ? true : false;
+
+  const char* pv = ini.GetValue(section, "behavior-pattern");
+  if(strcmp(pv, "poll") == 0){
+    pattern = Pattern::poll;
+  }else if(strcmp(pv, "random") == 0){
+    pattern = Pattern::random;
+  }else if(strcmp(pv, "trace") == 0){
+    pattern = Pattern::trace;
+  }else{
+    cerr << "can not identify the bahavior pattern in " << file << endl;
+  }
+
+  // now read pattern specific attributes
+  switch (pattern){
+  case Pattern::poll:
+    /* code */
+    break;
+
+  case Pattern::random:
+    /* code */
+    break;
+
+  case Pattern::trace:
+    /* code */
+    break;
+  
+  default:
+    break;
+  }
 }

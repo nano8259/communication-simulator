@@ -20,7 +20,16 @@ public:
   static int time_span;
   static int bandwidth;
 
+  enum Pattern{poll, random, trace};
+  static Pattern pattern;
+
   static bool debug;
+
+  static int seed;
+  static double select_ratio;
+
+  static string trace_file;
+  static double time_scale;
 
   GrobalAttributes(/* args */);
   ~GrobalAttributes();

@@ -34,6 +34,12 @@ void Host::Update(int now){
   // update timestamp of itself
   table[id]->timestamp = now;
 
+  if(Grobal::pattern == Grobal::Pattern::poll){
+    Poll(now);
+  }
+}
+
+void Host::Poll(int now){
   // find expired entry
   for(vector<unique_ptr<Entry>>::iterator iter = table.begin(); iter != table.end(); iter++){
     if(now - iter->get()->timestamp >= Grobal::shelf_life){

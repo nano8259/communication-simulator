@@ -11,7 +11,11 @@
 #include "simulator.h"
 
 int main(int argc, char** argv){
-  GrobalAttributes::LoadSettings("config.ini");
+  if(argc != 2){
+    cerr << "please specify the config file!" << endl;
+    return -1;
+  }
+  GrobalAttributes::LoadSettings(argv[1]);
   // cout << Grobal::host_num << endl;
   Simulator simulator;
   simulator.CalculateCentralizedResult();
