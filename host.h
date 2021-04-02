@@ -43,6 +43,7 @@ class Host{
     vector<unique_ptr<Entry>>* CompareTable(vector<unique_ptr<Entry>>& table);
     void Update(int now);
     void Poll(int now);
+    void RandomSelect(int now);
 
     int id;
     Simulator *simulator;

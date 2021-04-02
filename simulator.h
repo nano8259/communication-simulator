@@ -20,10 +20,12 @@ class Simulator{
 
     Simulator();
     void IncreaseSum();
+    void IncreaseDataAmount(int n);
     void Run();
     void CalculateCentralizedResult(); 
 
     int sum; // number of communication times
+    int data_amount; // in entry
     vector<unique_ptr<Host>> hosts;
     
 };

@@ -36,6 +36,8 @@ void Host::Update(int now){
 
   if(Grobal::pattern == Grobal::Pattern::poll){
     Poll(now);
+  }else if(Grobal::pattern == Grobal::Pattern::random){
+    RandomSelect(now);
   }
 }
 
@@ -44,6 +46,35 @@ void Host::Poll(int now){
   for(vector<unique_ptr<Entry>>::iterator iter = table.begin(); iter != table.end(); iter++){
     if(now - iter->get()->timestamp >= Grobal::shelf_life){
       simulator->hosts[iter->get()->id]->Notify(table, id);
+    }
+  }
+}
+
+void Host::RandomSelect(int now){
+  // now randomly select hosts
+  int select_num = Grobal::host_num * Grobal::select_ratio;
+  vector<int> selected_hosts;
+  while(selected_hosts.size() < select_num){
+    int selected_host = Grobal::dist_host(Grobal::rng);
+    // the selected host must not be itself
+    if(selected_host == id){
+      continue;
+    }
+    // the selected host must not be the same
+    for(auto it =  selected_hosts.begin(); it != selected_hosts.end(); it++){
+      if(selected_host == *it){
+        continue;
+      }
+    }
+
+    selected_hosts.push_back(selected_host);
+  }
+
+  // now poll the selected hosts
+  for(auto it = selected_hosts.begin(); it != selected_hosts.end(); it++){
+    int selected_host = *it;
+    if(now - table[selected_host]->timestamp >= Grobal::shelf_life){
+      simulator->hosts[selected_host]->Notify(table, id);
     }
   }
 }

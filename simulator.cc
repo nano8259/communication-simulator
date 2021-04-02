@@ -25,7 +25,10 @@ void Simulator::CalculateCentralizedResult(){
   // *2, one for sending and one for receiving
   times = Grobal::host_num * Grobal::time_span / Grobal::shelf_life * 2;
   cout << "the times of communication in centralized approach is " << times << endl;
-  cout << "the amount of data to transfer in centralized approach is " << times * Grobal::host_num << endl;
+  // data amount: half of the communication contains data of host itself, 
+  // and the other half contains all hosts' infomation
+  cout << "the amount of data to transfer in centralized approach is " << 
+    times * Grobal::host_num / 2 + times << endl;
 }
 
 void Simulator::Run(){

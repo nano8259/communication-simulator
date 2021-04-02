@@ -5,7 +5,7 @@
     "type": "cppdbg",
     "request": "launch",
     "program": "${workspaceFolder}/simulator",
-    "args": [],
+    "args": ["config.ini"],
     "stopAtEntry": false,
     "cwd": "${workspaceFolder}",
     "environment": [],
