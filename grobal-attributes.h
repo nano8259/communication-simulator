@@ -9,6 +9,7 @@
 #define GROBAL_ATTRIBUTES_H_
 
 #include <string>
+#include <random>
 
 using namespace std;
 
@@ -25,7 +26,9 @@ public:
 
   static bool debug;
 
-  static int seed;
+  // static int seed; // the seed is included by the generator
+  static mt19937 rng; // random number generator
+  static uniform_int_distribution<mt19937::result_type> dist_host; // distribution in range [0,host)
   static double select_ratio;
 
   static string trace_file;

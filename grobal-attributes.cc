@@ -20,7 +20,9 @@ int GrobalAttributes::time_span;
 int GrobalAttributes::bandwidth;
 GrobalAttributes::Pattern GrobalAttributes::pattern;
 bool GrobalAttributes::debug;
-int GrobalAttributes::seed;
+// int GrobalAttributes::seed;
+mt19937 GrobalAttributes::rng; // random number generator
+uniform_int_distribution<mt19937::result_type> GrobalAttributes::dist_host; 
 double GrobalAttributes::select_ratio;
 string GrobalAttributes::trace_file;
 double GrobalAttributes::time_scale;
@@ -62,11 +64,28 @@ void GrobalAttributes::LoadSettings(string file){
     break;
 
   case Pattern::random:
-    /* code */
+    section = "random";
+
+    // random number generator
+    pv = ini.GetValue(section, "seed");
+    if (strcmp(pv, "random") == 0){
+      // choose the seed randomly
+      random_device dev;
+      rng = mt19937(dev());
+    }else{
+      int seed = stoi(pv);
+      rng = mt19937(seed);
+    }
+    dist_host = uniform_int_distribution<mt19937::result_type>(0, host_num-1);
+
+    select_ratio = stod(ini.GetValue(section, "select-ratio"));
     break;
 
   case Pattern::trace:
-    /* code */
+    section = "trace";
+
+    trace_file = ini.GetValue(section, "trace-file");
+    time_scale = select_ratio = stod(ini.GetValue(section, "time-scale"));
     break;
   
   default:
