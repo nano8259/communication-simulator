@@ -30,27 +30,33 @@ Host::Host(int id, Simulator *simulator)
   }
 }
 
-void Host::Update(int now){
+void Host::UpdateItself(){
   // update timestamp of itself
+  int now = simulator->now;
   table[id]->timestamp = now;
+}
 
+void Host::Update(){
+  // Update expired entries
   if(Grobal::pattern == Grobal::Pattern::poll){
-    Poll(now);
+    Poll();
   }else if(Grobal::pattern == Grobal::Pattern::random){
-    RandomSelect(now);
+    RandomSelect();
   }
 }
 
-void Host::Poll(int now){
+void Host::Poll(){
   // find expired entry
+  int now = simulator->now;
   for(vector<unique_ptr<Entry>>::iterator iter = table.begin(); iter != table.end(); iter++){
-    if(now - iter->get()->timestamp >= Grobal::shelf_life){
+    if(now - iter->get()->timestamp > Grobal::shelf_life){
       simulator->hosts[iter->get()->id]->Notify(table, id);
     }
   }
 }
 
-void Host::RandomSelect(int now){
+void Host::RandomSelect(){
+  int now = simulator->now;
   // now randomly select hosts
   int select_num = Grobal::host_num * Grobal::select_ratio;
   vector<int> selected_hosts;
@@ -73,10 +79,28 @@ void Host::RandomSelect(int now){
   // now poll the selected hosts
   for(auto it = selected_hosts.begin(); it != selected_hosts.end(); it++){
     int selected_host = *it;
-    if(now - table[selected_host]->timestamp >= Grobal::shelf_life){
-      simulator->hosts[selected_host]->Notify(table, id);
+    if(now - table[selected_host]->timestamp > Grobal::shelf_life){
+      if(Grobal::reduce_mode){
+        PreNotify(selected_host);
+      }else{
+        simulator->hosts[selected_host]->Notify(table, id);
+      }
     }
   }
+}
+
+void Host::PreNotify(int peer_id){
+  // select the unexpired entries to send
+  int now = simulator->now;
+  vector<unique_ptr<Entry>>* send_table = new vector<unique_ptr<Entry>>;
+  for(int i = 0; i < Grobal::host_num; i++){
+    if(now - table[i]->timestamp <= Grobal::shelf_life){
+      send_table->push_back(make_unique<Entry>(*(table[i].get())));
+    }
+  }
+
+  // send selected entries
+  simulator->hosts[peer_id]->Notify(*send_table, id);
 }
 
 vector<unique_ptr<Entry>>* Host::CompareTable(vector<unique_ptr<Entry>>& t){
@@ -84,7 +108,7 @@ vector<unique_ptr<Entry>>* Host::CompareTable(vector<unique_ptr<Entry>>& t){
   vector<unique_ptr<Entry>>* feedback = new vector<unique_ptr<Entry>>;
 
   for(int i = 0; i < n; i++){
-    int entry_id = table[i]->id;
+    int entry_id = t[i]->id;
     
     if(table[entry_id]->timestamp > t[i]->timestamp){
       // local entry is newer than peer's
@@ -99,11 +123,16 @@ vector<unique_ptr<Entry>>* Host::CompareTable(vector<unique_ptr<Entry>>& t){
 
 void Host::Notify(vector<unique_ptr<Entry>>& t, int id){
   simulator->IncreaseSum();
+  simulator->IncreaseDataAmount(t.size());
 
   vector<unique_ptr<Entry>>* feedback =  CompareTable(t);
   if(!feedback->empty()){
     // if feedback is not empty, then reply the feedback
-    simulator->hosts[id]->Reply(table);
+    if(Grobal::reduce_mode){
+      PreReply(id, *feedback, t);
+    }else{
+      simulator->hosts[id]->Reply(*feedback);
+    }
   }
 
   // for debug
@@ -113,12 +142,37 @@ void Host::Notify(vector<unique_ptr<Entry>>& t, int id){
   }
 }
 
+void Host::PreReply(int peer_id, vector<unique_ptr<Entry>>& feedback, vector<unique_ptr<Entry>>& received_table){
+  int now = simulator->now;
+  
+  for(int i = 0; i < Grobal::host_num; i++){
+    if(now - table[i]->timestamp <= Grobal::shelf_life){
+      // the i-th entry is unexpired
+      bool is_in_receive_table = false;
+      for(auto it = received_table.begin(); it != received_table.end(); it++){
+        if(i == it->get()->id){
+          // the entry is in received_table
+          is_in_receive_table = true;
+        }
+      }
+
+      if(!is_in_receive_table){
+        // the i-th entry is unexpired and not in received_table
+        feedback.push_back(make_unique<Entry>(*(table[i].get())));
+      }
+    }
+  }
+
+  simulator->hosts[peer_id]->Reply(feedback);
+}
+
 void Host::Reply(vector<unique_ptr<Entry>>& t){
   simulator->IncreaseSum();
+  simulator->IncreaseDataAmount(t.size());
 
   vector<unique_ptr<Entry>>* feedback =  CompareTable(t);
   if(!feedback->empty()){
-    cerr << "the feedback is not empty!" << endl;
+    cerr << "the feedback is not empty! ..but it is all right" << endl;
   }
 
   if(Grobal::debug){

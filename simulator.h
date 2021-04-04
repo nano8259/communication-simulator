@@ -26,6 +26,7 @@ class Simulator{
 
     int sum; // number of communication times
     int data_amount; // in entry
+    int now; // time
     vector<unique_ptr<Host>> hosts;
     
 };

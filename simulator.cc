@@ -20,6 +20,10 @@ void Simulator::IncreaseSum(){
   sum += 1;
 }
 
+void Simulator::IncreaseDataAmount(int da){
+  data_amount += da;
+}
+
 void Simulator::CalculateCentralizedResult(){
   int times;
   // *2, one for sending and one for receiving
@@ -32,12 +36,17 @@ void Simulator::CalculateCentralizedResult(){
 }
 
 void Simulator::Run(){
-  for(int now = 0; now < Grobal::time_span; now += Grobal::interval){
+  for(now = 0; now < Grobal::time_span; now += Grobal::interval){
+    // first update its timestamp
     for(int i = 0; i < Grobal::host_num; i++){
-      hosts[i]->Update(now);
+      hosts[i]->UpdateItself();
+    }
+    for(int i = 0; i < Grobal::host_num; i++){
+      hosts[i]->Update();
     }
   }
 
   cout << "simulation end" << endl;
   cout << "the times of communication in decentralized approach is " << sum << endl;
+  cout << "the data amount of communication in decentralized approach is " << data_amount << endl;
 }

@@ -23,6 +23,7 @@ public:
 
   enum Pattern{poll, random, trace};
   static Pattern pattern;
+  static bool reduce_mode;
 
   static bool debug;
 

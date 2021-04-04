@@ -19,6 +19,7 @@ int GrobalAttributes::shelf_life;
 int GrobalAttributes::time_span;
 int GrobalAttributes::bandwidth;
 GrobalAttributes::Pattern GrobalAttributes::pattern;
+bool GrobalAttributes::reduce_mode;
 bool GrobalAttributes::debug;
 // int GrobalAttributes::seed;
 mt19937 GrobalAttributes::rng; // random number generator
@@ -45,6 +46,7 @@ void GrobalAttributes::LoadSettings(string file){
   time_span = stoi(ini.GetValue(section, "time-span"));
   bandwidth = stoi(ini.GetValue(section, "bandwidth"));
   debug = strcmp(ini.GetValue(section, "debug"), "true") == 0 ? true : false;
+  reduce_mode = strcmp(ini.GetValue(section, "reduce-mode"), "true") == 0 ? true : false;
 
   const char* pv = ini.GetValue(section, "behavior-pattern");
   if(strcmp(pv, "poll") == 0){
@@ -56,6 +58,8 @@ void GrobalAttributes::LoadSettings(string file){
   }else{
     cerr << "can not identify the bahavior pattern in " << file << endl;
   }
+
+  
 
   // now read pattern specific attributes
   switch (pattern){

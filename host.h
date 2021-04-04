@@ -38,12 +38,15 @@ class Host{
     Host(int id, Simulator *s);
     // must use reference pass instead of value pass
     // because the unique_ptr can not be reproduced
-    void Notify(vector<unique_ptr<Entry>>& table, int id);
-    void Reply(vector<unique_ptr<Entry>>& table);
+    void Notify(vector<unique_ptr<Entry>>& t, int id);
+    void Reply(vector<unique_ptr<Entry>>& t);
+    void PreNotify(int peer_id);
+    void PreReply(int peer_id, vector<unique_ptr<Entry>>& feedback, vector<unique_ptr<Entry>>& received_table);
     vector<unique_ptr<Entry>>* CompareTable(vector<unique_ptr<Entry>>& table);
-    void Update(int now);
-    void Poll(int now);
-    void RandomSelect(int now);
+    void UpdateItself();
+    void Update();
+    void Poll();
+    void RandomSelect();
 
     int id;
     Simulator *simulator;
